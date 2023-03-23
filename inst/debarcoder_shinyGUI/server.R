@@ -1,3 +1,17 @@
+fixUploadedFilesNames <- function(x) {
+    if (is.null(x)) {
+        return()
+    }
+
+    oldNames = x$datapath
+    newNames = file.path(dirname(x$datapath),
+                         x$name)
+    file.rename(from = oldNames, to = newNames)
+    x$datapath <- newNames
+    x
+}
+
+
 render_debarcoder_ui <- function(...){renderUI({
     fluidPage(
         fluidRow(
@@ -7,7 +21,7 @@ render_debarcoder_ui <- function(...){renderUI({
                         p("Current barcode key")
                     ),
                     column(4,
-                        actionButton("debarcoderui_select_key", "Select key")
+                           fileInput("debarcoder_select_key", "Choose file", multiple = F)
                     )
                 ),
                 verbatimTextOutput("debarcoderui_dialog_selected_key"),
@@ -16,7 +30,7 @@ render_debarcoder_ui <- function(...){renderUI({
                         p("Current FCS file")
                     ),
                     column(4,
-                        actionButton("debarcoderui_select_fcs", "Select FCS")
+                           fileInput("debarcoder_select_fcs", "Choose file", multiple = F)
                     )
                 ),
                 verbatimTextOutput("debarcoderui_dialog_selected_fcs"),
@@ -203,15 +217,15 @@ shinyServer(function(input, output, session) {
         })
     })
 
-    observeEvent(input$debarcoderui_select_key, {
-        isolate({
-            debarcoderui.reactive.values$bc.key.fname <- file.choose()
-        })
+    observeEvent(input$debarcoder_select_key, {
+        files = fixUploadedFilesNames(input$debarcoder_select_key)
+        print(files$datapath)
+        debarcoderui.reactive.values$bc.key.fname <- files$datapath
     })
 
-    observeEvent(input$debarcoderui_select_fcs, {
-        isolate({
-            debarcoderui.reactive.values$fcs.fname <- file.choose()
-        })
+    observeEvent(input$debarcoder_select_fcs, {
+        fcs = fixUploadedFilesNames(input$debarcoder_select_key)
+        print(files$datapath)
+        debarcoderui.reactive.values$fcs.fname <- fcs$datapath
     })
 })
