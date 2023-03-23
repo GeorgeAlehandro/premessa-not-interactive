@@ -1,3 +1,15 @@
+fixUploadedFilesNames <- function(x) {
+    if (is.null(x)) {
+        return()
+    }
+
+    oldNames = x$datapath
+    newNames = file.path(dirname(x$datapath),
+                         x$name)
+    file.rename(from = oldNames, to = newNames)
+    x$datapath <- newNames
+    x
+}
 
 
 
@@ -8,7 +20,7 @@ render_paneleditor_ui <- function(working.directory, ...) {renderUI({
                 textInput("paneleditorui_output_folder", label = "Output folder name", value = "renamed")
             ),
             column(3,
-                actionButton("paneleditorui_load_template", "Load template")
+                   fileInput("paneleditorui_load_template", "Load template")
             ),
             column(3,
                 actionButton("paneleditorui_process_files", "Process files")
@@ -51,7 +63,12 @@ rename_from_template <- function(tab, template.file.path) {
 }
 
 shinyServer(function(input, output, session) {
-    working.directory <- dirname(file.choose())
+    observeEvent(input$submit_analysis, {
+        files = fixUploadedFilesNames(input$file)
+        files <<- files
+        print(files)
+        #options(warn = -1)
+        working.directory <- dirname(files$datapath[1])
 
     output$paneleditorUI <- render_paneleditor_ui(working.directory)
 
@@ -96,7 +113,10 @@ shinyServer(function(input, output, session) {
         temp <- panel.table
 
         if(!is.null(input$paneleditorui_load_template) && input$paneleditorui_load_template != 0) {
-            temp <- tryCatch(rename_from_template(temp, file.choose()),
+            files = fixUploadedFilesNames(input$paneleditorui_load_template)
+
+            temp <- tryCatch(rename_from_template(temp, files$datapath[1]),
+
                              error = function(cond) {
                                  showModal(modalDialog(
                                      title = "Panel editor error",
@@ -136,6 +156,7 @@ shinyServer(function(input, output, session) {
             }"
         )
         hot
+    })
     })
 })
 
