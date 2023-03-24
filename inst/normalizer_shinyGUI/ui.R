@@ -5,7 +5,8 @@ shinyUI(
                             fileInput("file", "Choose files", multiple = TRUE),
                             actionButton("submit_analysis", "Submit files"),
                             fluidRow(
-                                uiOutput("concatenateUI")
+                                uiOutput("concatenateUI"),
+                                uiOutput("downloadUI")
                             )
                         )),
                tabPanel("Normalize data",

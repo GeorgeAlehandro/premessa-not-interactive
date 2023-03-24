@@ -123,10 +123,10 @@ generate_beadremovalui_plot_outputs <- function(n) {renderUI({
 })}
 
 shinyServer(function(input, output, session) {
+    options(shiny.maxRequestSize=1000*1024^2)
     observeEvent(input$submit_analysis, {
         files = fixUploadedFilesNames(input$file)
         files <<- files
-        print(files)
         #options(warn = -1)
         working.directory <- dirname(files$datapath[1])
         print(working.directory)
@@ -150,7 +150,18 @@ shinyServer(function(input, output, session) {
                     title = "Normalizer report",
                     "File concatenation started, please wait..."
                 ))
-                premessa::concatenate_fcs_files(input.files, out.file)
+                flowframe_file<<-premessa::concatenate_fcs_files(input.files)
+                file_name<<-basename(out.file)
+                output$downloadUI<-renderUI({
+                    fluidRow(
+                        column(12,
+                               downloadLink("downloadData", "Download")
+                        )
+                    )
+                })
+
+
+
                 showModal(modalDialog(
                     title = "Normalizer report",
                     p("Files concatenated in this order:", br(),
@@ -163,16 +174,15 @@ shinyServer(function(input, output, session) {
             }
         })
 
-        #beadremovalUI functions
+        output$downloadData <- downloadHandler(
+            filename = function() {
+                paste(file_name,".fcs", sep="")
+            },
+            content = function(file) {
+                premessa::write_flowFrame(flowframe_file, file)
+            }
+        )
 
-        get_beadremovalui_fcs <- reactive({
-            ret <- NULL
-
-            if(!is.null(input$beadremovalui_selected_fcs) && input$beadremovalui_selected_fcs != "")
-                ret <- flowCore::read.FCS(file.path(normed.dir, input$beadremovalui_selected_fcs), emptyValue = FALSE)
-
-            return(ret)
-        })
 
         observeEvent(input$beadremovalui_remove_beads, {
             isolate({
