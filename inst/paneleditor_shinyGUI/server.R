@@ -11,19 +11,26 @@ fixUploadedFilesNames <- function(x) {
     x
 }
 
-
+zip_directory <- function(zip_filename,directory_path) {
+    # Get a list of all the files in the directory
+    files <- list.files(directory_path, full.names = T)
+    print(directory_path)
+    # Create a zip file with the same name as the directory
+    return(zip(zip_filename, files,flags = "-j"))
+}
 
 render_paneleditor_ui <- function(working.directory, ...) {renderUI({
     fluidPage(
         fluidRow(
-            column(6,
+            column(3,
                 textInput("paneleditorui_output_folder", label = "Output folder name", value = "renamed")
             ),
             column(3,
                    fileInput("paneleditorui_load_template", "Load template")
             ),
             column(3,
-                actionButton("paneleditorui_process_files", "Process files")
+                actionButton("paneleditorui_process_files", "Process files"),
+                uiOutput("downloadUI")
             )
         ),
         fluidRow(
@@ -66,7 +73,6 @@ shinyServer(function(input, output, session) {
     observeEvent(input$submit_analysis, {
         files = fixUploadedFilesNames(input$file)
         files <<- files
-        print(files)
         #options(warn = -1)
         working.directory <- dirname(files$datapath[1])
 
@@ -96,13 +102,29 @@ shinyServer(function(input, output, session) {
                     title = "Panel editor report",
                     "File processing started, please wait..."
                 ))
-
                 premessa:::rename_parameters_in_files(working.directory, input$paneleditorui_output_folder, df)
-
+                output$downloadUI<-renderUI({
+                    fluidRow(
+                        column(12,
+                               downloadLink("downloadData", "Download")
+                        )
+                    )
+                })
                 showModal(modalDialog(
                     title = "Panel editor report",
-                    sprintf("File processing completed. The output files are located in: %s", file.path(working.directory, input$paneleditorui_output_folder))
+                    sprintf("File processing completed. You may download the files by clicking on the download button.")
                 ))
+
+                output$downloadData <- downloadHandler(
+                    filename = function() {
+                        paste(input$paneleditorui_output_folder,"panel_editor_compressed.zip", sep="")
+                    },
+                    content = function(file) {
+                        zip_directory(file, file.path(working.directory, input$paneleditorui_output_folder))
+
+                    },
+                    contentType = "application/zip"
+                )
 
 
             })

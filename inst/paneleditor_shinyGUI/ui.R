@@ -6,6 +6,7 @@ shinyUI(
                     fileInput("file", "Choose files", multiple = TRUE),
                     actionButton("submit_analysis", "Submit files"),
                     uiOutput("paneleditorUI")
+
                 )
             )
         )
