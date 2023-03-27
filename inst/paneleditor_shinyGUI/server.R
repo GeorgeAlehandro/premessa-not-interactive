@@ -14,8 +14,7 @@ fixUploadedFilesNames <- function(x) {
 zip_directory <- function(zip_filename,directory_path) {
     # Get a list of all the files in the directory
     files <- list.files(directory_path, full.names = T)
-    print(directory_path)
-    # Create a zip file with the same name as the directory
+    # Create a zip file
     return(zip(zip_filename, files,flags = "-j"))
 }
 
