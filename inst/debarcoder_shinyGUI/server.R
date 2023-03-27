@@ -219,13 +219,11 @@ shinyServer(function(input, output, session) {
 
     observeEvent(input$debarcoder_select_key, {
         files = fixUploadedFilesNames(input$debarcoder_select_key)
-        print(files$datapath)
         debarcoderui.reactive.values$bc.key.fname <- files$datapath
     })
 
     observeEvent(input$debarcoder_select_fcs, {
-        fcs = fixUploadedFilesNames(input$debarcoder_select_key)
-        print(files$datapath)
+        fcs = fixUploadedFilesNames(input$debarcoder_select_fcs)
         debarcoderui.reactive.values$fcs.fname <- fcs$datapath
     })
 })
